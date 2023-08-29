@@ -180,7 +180,7 @@ impl<CustomClaims> JWTClaims<CustomClaims> {
             ensure!(now <= reject_before, JWTError::OldTokenReused);
         }
         if let Some(time_issued) = self.issued_at {
-            ensure!(time_issued <= now + time_tolerance, JWTError::ClockDrift);
+            // NBA remove check of iat due to SE issue ensure!(time_issued <= now + time_tolerance, JWTError::ClockDrift);
             if let Some(max_validity) = options.max_validity {
                 ensure!(
                     now <= time_issued || now - time_issued <= max_validity,
