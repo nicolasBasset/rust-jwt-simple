@@ -172,15 +172,26 @@ pub struct JWTClaims<CustomClaims> {
 }
 
 impl<CustomClaims> JWTClaims<CustomClaims> {
+
+    #[cfg(not(feature = "proxy-wasm-time"))]
+    fn now(&self)  -> Duration {
+        Clock::now_since_epoch()
+    }
+    #[cfg(feature = "proxy-wasm-time")]
+    fn now(&self)  -> Duration {
+        use std::time;
+        let unix_now = proxy_wasm::hostcalls::get_current_time().expect("get_current_time failed").duration_since(time::UNIX_EPOCH).unwrap_or_default();
+        coarsetime::Duration::from(unix_now)
+    }
     pub(crate) fn validate(&self, options: &VerificationOptions) -> Result<(), Error> {
-        let now = Clock::now_since_epoch();
+        let now = self.now();
         let time_tolerance = options.time_tolerance.unwrap_or_default();
 
         if let Some(reject_before) = options.reject_before {
             ensure!(now <= reject_before, JWTError::OldTokenReused);
         }
         if let Some(time_issued) = self.issued_at {
-            // NBA remove check of iat due to SE issue ensure!(time_issued <= now + time_tolerance, JWTError::ClockDrift);
+            ensure!(time_issued <= now + time_tolerance, JWTError::ClockDrift);
             if let Some(max_validity) = options.max_validity {
                 ensure!(
                     now <= time_issued || now - time_issued <= max_validity,

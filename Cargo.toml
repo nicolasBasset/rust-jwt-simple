@@ -31,12 +31,14 @@ serde_json = "1.0.96"
 spki = "0.6.0"
 thiserror = "1.0.40"
 zeroize = "1.6.0"
+proxy-wasm =  {version = "0.2", optional = true}
 
 [dev-dependencies]
 benchmark-simple = "0.1.7"
 
 [features]
 cwt = ["ciborium"]
+proxy-wasm-time = ["dep:proxy-wasm"]
 
 [[bench]]
 name = "benchmark"
